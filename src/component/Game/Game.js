@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import Board from "../Board/Board";
 
 export default function Game() {
@@ -9,11 +9,17 @@ export default function Game() {
       },
     ],
     xIsNext: true,
+    stepNumber: 0,
   });
-  const { history, xIsNext } = gameData;
-  const current = history[history.length - 1];
+  const { history, xIsNext, stepNumber } = gameData;
+  const current = history[stepNumber];
 
-  const winner = calculateWinner(current.squares);
+  //useMemo
+  const winner = useMemo(
+    () => calculateWinner(current.squares),
+    [current.squares]
+  );
+
   const status = winner
     ? `Winner: ${winner}!!`
     : `Next player: ${xIsNext ? "X" : "O"}`;
@@ -21,29 +27,49 @@ export default function Game() {
   const moves = history.map((step, move) => {
     const desc = move ? `Go To Move #${move}` : "Go To Game Start";
     return (
-      <li>
-        <button>{desc}</button>
+      <li key={move}>
+        <button
+          onClick={() => {
+            toJump(move);
+          }}
+        >
+          {desc}
+        </button>
       </li>
     );
   });
 
+  //useCallback & useState,useReducer
   const handleClick = useCallback(
     (i) => {
       if (!winner) {
         setGameData((prev) => {
-          const history = prev.history;
-          const squares = [...history[history.length - 1].squares];
+          const { history, xIsNext, stepNumber } = prev;
+          const tempHistory = history.slice(0, stepNumber + 1);
+          const squares = [...tempHistory[tempHistory.length - 1].squares];
           squares[i] = prev.xIsNext ? "X" : "O";
+
           return {
             ...prev,
-            xIsNext: !prev.xIsNext,
-            history: [...prev.history, { squares }],
+            xIsNext: !xIsNext,
+            history: [...tempHistory, { squares }],
+            stepNumber: tempHistory.length,
           };
         });
       }
     },
     [winner]
   );
+
+  const toJump = (step) => {
+    setGameData((prev) => {
+      return {
+        ...prev,
+        stepNumber: step,
+        xIsNext: step % 2 === 0,
+      };
+    });
+  };
 
   return (
     <div className="game">
