@@ -1,7 +1,18 @@
 ```javascript
 function test() {
-  if(0) {
+  if (0) {
     console.log();
+  }
+}
+```
+
+```javascript
+function test() {
+  if (0) {
+    console.log();
+    if (1) {
+      console.log();
+    }
   }
 }
 ```
